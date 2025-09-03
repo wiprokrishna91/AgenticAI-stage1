@@ -1,0 +1,6 @@
+@echo off
+set AWS_ACCESS_KEY_ID=
+set AWS_SECRET_ACCESS_KEY=
+set AWS_SESSION_TOKEN=
+echo AWS environment variables set successfully!
+echo Run your Python application now.
