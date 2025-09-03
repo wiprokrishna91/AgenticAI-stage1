@@ -1,3 +1,6 @@
+set_aws_env.bat
+python main.py
+
 # S2I Containerization Guide
 
 ## What is S2I?

@@ -7,14 +7,14 @@ from s2i_builder import containerize_with_s2i, S2IBuilder
 from s2i_setup import install_s2i, check_s2i_installation
 
 class BedrockDockerAgent:
-    def __init__(self, region_name: str = "ap-south-1"):
-        """Initialize AWS Bedrock client"""
+    def __init__(self, region_name: str = "us-east-1"):
+        """Initialize AWS Bedrock client using environment variables"""
         self.bedrock = boto3.client(
-            'bedrock-runtime', 
-            region_name="us-east-1",
-            aws_access_key_id="ASIAYSE4OFR63CSNP6JP",
-            aws_secret_access_key="+WhdoEZn0aHjyXRAaF5KulIUD2B0AygAoT6xoRfx",
-            aws_session_token="IQoJb3JpZ2luX2VjENn//////////wEaCmFwLXNvdXRoLTEiSDBGAiEAj7uLZKWf+kA8vJit6aLLwHQHyJwgFptd3W/mk+gMlwMCIQC+eFAF9oictZmlVmwMS5ZLvU2R0bs8ESQexmxyaj+IdiqIAwhCEAAaDDU4ODczODYwNDE1NyIMDrgGQdAwINWOMcZSKuUClmZndCjws5qQgaItYuBsIgbNRXlU4e4yGyWvDA99KFMTeXLBrlIq9xXw4YvBxug7kF2YwgGaiduYs3ZOOs9JOtPWrRn8ZZU2jR+JrLvc2AtXKMAs0IGI2A1r4Ob1MUri3A3NVhMscWPNSgrayDxPhgqEfS07BrGOhfO7QIs6/0H29YUB3czdLJOZE76eNIZ4HSsqkWFfLuFY3tdqRQg0ARgIUV2bfipnkvow6JdKUsdWqD+9b+Qq0jzLxTIW+VkWstbKsfxBDkx6rgQlA0MQcB9riQqIqtmBWV9T1+7g2hGxwPqZmeeAw67VCK2sLWwl44bTXbxzGG47wkq7IRrQCZ9DLSJt3wW1RooNSU0aSUql1uonBTBpdi8GSOmdV2aORjOQUr56y/n2kj26SRzQhDFdIAaJ8CiIQ7AK5jRvgQ6MR9n7A2sQsof0rOLPJjWcNEHGXbDwsJcZPfWojnVl2sHSKlfsMKOK4MUGOqUBToHi/f7AsdaLtqUJPOSAXrapGS1P4MlPut6m1uz9jUPaUiGEose34FbyBFpb1bRwNm6qValxeCHLan16s3bvuimexjXICUCHUau4m/xt/UVDRRyCTGuS5PKE52DqOekT2YB3BmwK07lHtYzrETiy9x8TU4ocnfKxzg7onnOfnkHTNeCVJrisyHFW8XuOtXUI/sF0gNrx5MGAusIhM2Uc+RFvbzLq"
+            'bedrock-runtime',
+            region_name=region_name,
+            aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
+            aws_session_token=os.getenv('AWS_SESSION_TOKEN')
         )
         self.model_id = "amazon.nova-lite-v1:0"
     
