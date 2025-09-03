@@ -295,6 +295,11 @@
                 this.resultsContent.textContent = JSON.stringify(data, null, 2);
                 this.results.style.display = 'block';
             }
+
+            hideResults() {
+                this.resultsContent.textContent = JSON.stringify('', null, 2);
+                this.results.style.display = 'none';
+            }
             
             extractRepoName(url) {
                 try {
@@ -349,6 +354,7 @@
                     this.showStatus(`❌ Clone failed: ${error.message}`, 'error');
                 } finally {
                     this.showLoading(false);
+                    this.hideResults();
                 }
             }
             
@@ -358,10 +364,9 @@
                     this.showStatus('Please enter a repository URL', 'error');
                     return;
                 }
-                
                 this.showLoading(true);
                 this.showStatus('Analyzing repository with AI...', 'info');
-                
+                this.hideResults();
                 try {
                     const result = await this.makeRequest('/analyze-repo', {
                         repo_url: url
@@ -372,8 +377,10 @@
                     
                 } catch (error) {
                     this.showStatus(`❌ Analysis failed: ${error.message}`, 'error');
+                    this.hideResults();
                 } finally {
                     this.showLoading(false);
+                    
                 }
             }
             
@@ -392,6 +399,7 @@
                 
                 this.showLoading(true);
                 this.showStatus('Creating containerized image...', 'info');
+                this.hideResults();
                 
                 try {
                     const result = await this.makeRequest('/containerize', {
@@ -403,8 +411,10 @@
                     
                 } catch (error) {
                     this.showStatus(`❌ Containerization failed: ${error.message}`, 'error');
+                    this.hideResults();
                 } finally {
                     this.showLoading(false);
+                    
                 }
             }
         }

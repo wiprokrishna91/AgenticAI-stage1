@@ -9,7 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, HttpUrl
 import uvicorn
-from awsbedrock import BedrockDockerAgent, bedrock_s2i_containerize
+from awsbedrock import BedrockDockerAgent
+from awsdocker import build_and_run_docker
 
 app = FastAPI(title="Git Repo Analyzer & Containerizer", version="1.0.0")
 
@@ -92,8 +93,8 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         
         # Get AI analysis
         prompt = f"""
-        Analyze this repository and provide a detailed summary:
-        
+        Go through each directory not more than 3 deapths and except for modules/library directories. scan each line to check which all languages are used and frontend and backend applications are used.
+        provided below is the repository name and details. go through each settings,configuration and yaml files to get maximum details from each. need specific ports used by frontend and backend and databse applications.
         Repository: {repo_name}
         Project Structure:
         {project_info}
@@ -102,21 +103,23 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         {{
             "project_type": "detected framework/language",
             "main_files": ["list of important files"],
-            "dependencies": ["detected dependencies"],
-            "recommended_port": 8080,
+            "madules": ["major modules"]
+            "dependencies": ["frontend and backend dependencies"],
+            "ports": ["list of all ports used] 
+            "database": ["databse used"]
             "build_instructions": "how to build this project",
-            "runtime_requirements": "what's needed to run this"
         }}
         """
-        
+    
         ai_response = agent._call_bedrock(prompt)
-        
+        restructured_response = agent._call_bedrock(f"Given this text, restructure it into a valid JSON object: {ai_response}. need spefic details with no additional texts")
+    
         return {
             "success": True,
             "repo_name": repo_name,
             "project_path": project_path,
             "structure": project_info,
-            "ai_analysis": ai_response,
+            "ai_analysis": restructured_response,
             "bedrock_model": agent.model_id
         }
         
@@ -125,7 +128,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
 
 @app.post("/containerize")
 async def containerize_project(container_request: ContainerizeRequest) -> Dict[str, Any]:
-    """Create containerized image using AWS Bedrock S2I method"""
+    """Create containerized image using Docker"""
     try:
         project_name = container_request.project_name
         project_path = os.path.join(CLONED_REPOS_DIR)
@@ -136,8 +139,8 @@ async def containerize_project(container_request: ContainerizeRequest) -> Dict[s
                 detail=f"Project '{project_path}' not found in cloned repositories"
             )
         
-        # Use Bedrock S2I containerization
-        result = bedrock_s2i_containerize(project_path)
+        # Use Docker containerization
+        result = build_and_run_docker(project_path)
         
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
