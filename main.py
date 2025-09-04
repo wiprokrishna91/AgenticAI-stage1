@@ -9,9 +9,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, HttpUrl
 import uvicorn
-from awsbedrock import BedrockDockerAgent
-from awsdocker import build_and_run_docker
+from takeprompt import BedrockAgent
+from awsdocker import build_and_run_docker, build_compose
 from tindatabase import RepoDatabase
+from awsbedrock import _analyze_project_structure
 
 app = FastAPI(title="Git Repo Analyzer & Containerizer", version="1.0.0")
 
@@ -41,7 +42,7 @@ async def clone_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         
         # Extract repo name from URL
         repo_name = repo_url.split('/')[-1].replace('.git', '')
-        clone_path = os.path.join(CLONED_REPOS_DIR)
+        clone_path = os.path.join(CLONED_REPOS_DIR, repo_name)
         
         # Remove existing directory if it exists
         if os.path.exists(clone_path):
@@ -80,7 +81,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         repo_url = str(repo_request.repo_url)
         repo_name = repo_url.split('/')[-1].replace('.git', '')
         print(repo_name)
-        project_path = os.path.abspath(os.path.join(os.getcwd(),CLONED_REPOS_DIR))
+        project_path = os.path.abspath(os.path.join(os.getcwd(),CLONED_REPOS_DIR, repo_name))
         print(project_path)
         if not os.path.exists(project_path):
             raise HTTPException(
@@ -88,10 +89,10 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
                 detail=f"Repository not found. Please clone it first."
             )
         # Initialize Bedrock agent
-        agent = BedrockDockerAgent()
+        agent = BedrockAgent()
         
         # Analyze project structure
-        project_info = agent._analyze_project_structure(project_path)
+        project_info = _analyze_project_structure(project_path)
         
         # Get AI analysis
         prompt = f"""
@@ -108,6 +109,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
             "ports": ["list of all ports used] 
             "database": ["databse used"]
             "build_instructions": "how to build this project",
+            "multistaged": "is it a multi-staged application? just reply True or false
         }}
         """
     
@@ -121,8 +123,11 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
             "repo_name": repo_name,
             "project_path": project_path,
             "structure": project_info,
-            "ai_analysis": restructured_response,
-            "bedrock_model": agent.model_id
+            "ai_analysis": restructured_response[7:-5],
+            "bedrock_model": agent.model_id,
+            "error_in":"",
+            "errormsg":"",
+            "imagename": ""
         }
         
         db.store_repo_analysis(repo_name, analysis_data)
@@ -137,7 +142,7 @@ async def containerize_project(container_request: ContainerizeRequest) -> Dict[s
     """Create containerized image using Docker"""
     try:
         project_name = container_request.project_name
-        project_path = os.path.join(CLONED_REPOS_DIR)     
+        project_path = os.path.join(CLONED_REPOS_DIR, project_name)     
         if not os.path.exists(project_path) or len(os.listdir(project_path)) == 0:
             raise HTTPException(
                 status_code=404,
@@ -167,6 +172,32 @@ async def containerize_project(container_request: ContainerizeRequest) -> Dict[s
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Containerization failed: {str(e)}")
+
+@app.post("/rebuild-compose")
+async def rebuild_compose(container_request: ContainerizeRequest) -> Dict[str, Any]:
+    """Rebuild docker-compose.yml file"""
+    try:
+        project_name = container_request.project_name
+        project_path = os.path.join(CLONED_REPOS_DIR, project_name)
+        
+        if not os.path.exists(project_path):
+            raise HTTPException(status_code=404, detail=f"Project path not found: {project_path}")
+        
+        result = build_compose(project_name, project_path)
+        
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+        
+        return {
+            "success": True,
+            "message": f"Compose rebuilt for {project_name}",
+            "result": result
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Rebuild compose failed: {str(e)}")
 
 @app.get("/health")
 async def health_check():

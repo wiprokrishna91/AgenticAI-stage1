@@ -234,6 +234,9 @@
                     <button type="button" class="btn btn-success" id="containerizeBtn">
                         🐳 Containerize
                     </button>
+                    <button type="button" class="btn btn-primary" id="tryAgainSmallBtn" style="flex: 0.3; font-size: 0.8rem;">
+                        🔄 Try Again
+                    </button>
                 </div>
             </form>
             
@@ -258,6 +261,7 @@
                 this.cloneBtn = document.getElementById('cloneBtn');
                 this.analyzeBtn = document.getElementById('analyzeBtn');
                 this.containerizeBtn = document.getElementById('containerizeBtn');
+                this.tryAgainSmallBtn = document.getElementById('tryAgainSmallBtn');
                 this.status = document.getElementById('status');
                 this.loading = document.getElementById('loading');
                 this.results = document.getElementById('results');
@@ -271,6 +275,7 @@
                 this.cloneBtn.addEventListener('click', () => this.cloneRepository());
                 this.analyzeBtn.addEventListener('click', () => this.analyzeRepository());
                 this.containerizeBtn.addEventListener('click', () => this.containerizeProject());
+                this.tryAgainSmallBtn.addEventListener('click', () => this.tryAgainSmall());
             }
             
             showStatus(message, type = 'info') {
@@ -287,7 +292,7 @@
             
             showLoading(show = true) {
                 this.loading.style.display = show ? 'block' : 'none';
-                const buttons = [this.cloneBtn, this.analyzeBtn, this.containerizeBtn];
+                const buttons = [this.cloneBtn, this.analyzeBtn, this.containerizeBtn, this.tryAgainSmallBtn];
                 buttons.forEach(btn => btn.disabled = show);
             }
             
@@ -415,6 +420,39 @@
                 } finally {
                     this.showLoading(false);
                     
+                }
+            }
+            
+            async tryAgainSmall() {
+                const url = this.repoUrl.value.trim();
+                if (!url) {
+                    this.showStatus('Please enter a repository URL', 'error');
+                    return;
+                }
+                
+                const projectName = this.extractRepoName(url);
+                if (!projectName) {
+                    this.showStatus('Invalid repository URL', 'error');
+                    return;
+                }
+                
+                this.showLoading(true);
+                this.showStatus('Rebuilding compose...', 'info');
+                this.hideResults();
+                
+                try {
+                    const result = await this.makeRequest('/rebuild-compose', {
+                        project_name: projectName
+                    });
+                    
+                    this.showStatus(`✅ Compose rebuilt: ${projectName}`, 'success');
+                    this.showResults(result);
+                    
+                } catch (error) {
+                    this.showStatus(`❌ Rebuild failed: ${error.message}`, 'error');
+                    this.hideResults();
+                } finally {
+                    this.showLoading(false);
                 }
             }
         }
