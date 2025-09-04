@@ -11,6 +11,7 @@ from pydantic import BaseModel, HttpUrl
 import uvicorn
 from awsbedrock import BedrockDockerAgent
 from awsdocker import build_and_run_docker
+from tindatabase import RepoDatabase
 
 app = FastAPI(title="Git Repo Analyzer & Containerizer", version="1.0.0")
 
@@ -78,6 +79,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
     try:
         repo_url = str(repo_request.repo_url)
         repo_name = repo_url.split('/')[-1].replace('.git', '')
+        print(repo_name)
         project_path = os.path.abspath(os.path.join(os.getcwd(),CLONED_REPOS_DIR))
         print(project_path)
         if not os.path.exists(project_path):
@@ -102,9 +104,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         Please provide analysis in JSON format with:
         {{
             "project_type": "detected framework/language",
-            "main_files": ["list of important files"],
             "madules": ["major modules"]
-            "dependencies": ["frontend and backend dependencies"],
             "ports": ["list of all ports used] 
             "database": ["databse used"]
             "build_instructions": "how to build this project",
@@ -114,7 +114,9 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         ai_response = agent._call_bedrock(prompt)
         restructured_response = agent._call_bedrock(f"Given this text, restructure it into a valid JSON object: {ai_response}. need spefic details with no additional texts")
     
-        return {
+        # Store analysis data in database
+        db = RepoDatabase()
+        analysis_data = {
             "success": True,
             "repo_name": repo_name,
             "project_path": project_path,
@@ -123,24 +125,33 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
             "bedrock_model": agent.model_id
         }
         
+        db.store_repo_analysis(repo_name, analysis_data)
+        db.close()
+        
+        return analysis_data
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
-
 @app.post("/containerize")
 async def containerize_project(container_request: ContainerizeRequest) -> Dict[str, Any]:
     """Create containerized image using Docker"""
     try:
         project_name = container_request.project_name
-        project_path = os.path.join(CLONED_REPOS_DIR)
-        
-        if not os.path.exists(project_path):
+        project_path = os.path.join(CLONED_REPOS_DIR)     
+        if not os.path.exists(project_path) or len(os.listdir(project_path)) == 0:
             raise HTTPException(
                 status_code=404,
-                detail=f"Project '{project_path}' not found in cloned repositories"
+                detail=f"Project '{project_path}' is either not found or empty. please check if the repo is cloned"
+            )
+        
+        if not project_path or not os.path.exists(project_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Project path not found or invalid for '{project_name}'"
             )
         
         # Use Docker containerization
-        result = build_and_run_docker(project_path)
+        result = build_and_run_docker(project_name, image_name='tesmyapp:latest', container_name='tesmyapp')
         
         if "error" in result:
             raise HTTPException(status_code=500, detail=result["error"])
@@ -148,7 +159,7 @@ async def containerize_project(container_request: ContainerizeRequest) -> Dict[s
         return {
             "success": True,
             "message": f"Containerization completed for {project_name}",
-            "project_name": project_name,
+            "repo_name": project_name,
             "containerization_result": result
         }
         

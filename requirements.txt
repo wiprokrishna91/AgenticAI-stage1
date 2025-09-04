@@ -6,3 +6,5 @@ pydantic==2.5.0
 boto3==1.34.0
 requests==2.31.0
 cryptography==41.0.7
+tinydb==4.8.0
+numpy==2.3.2
