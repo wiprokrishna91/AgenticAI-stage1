@@ -66,7 +66,7 @@ def build_docker_image(directory_path: str, image_name: str) -> Dict[str, Any]:
     except Exception as e:
         return {"error": f"Failed to build Docker image: {str(e)}"}
 
-def run_docker_container(image_name: str, container_name: str, port: str = None) -> Dict[str, Any]:
+def run_docker_container(image_name: str, container_name: str, port: str = '') -> Dict[str, Any]:
     """Run Docker container from image"""
     try:
         # Run Docker container
@@ -95,7 +95,7 @@ def run_docker_container(image_name: str, container_name: str, port: str = None)
     except Exception as e:
         return {"error": f"Failed to run Docker container: {str(e)}"}
 
-def build_and_run_docker(directory_path: str, image_name: str = None, container_name: str = None) -> Dict[str, Any]:
+def build_and_run_docker(directory_path: str, image_name: str = '', container_name: str = '') -> Dict[str, Any]:
     """Build and run Docker image with AI-powered configuration detection"""
     
     # Use AI to analyze project first

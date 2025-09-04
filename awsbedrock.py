@@ -17,12 +17,13 @@ class BedrockDockerAgent:
         project_info = self._analyze_project_structure(project_path)
         
         prompt = f"""
-        Analyze this project and create a Dockerfile:
-        
+        Go through each directory not more than 3 deapths. scan each line to check which all languages are used and frontend and backend applications are used and which all pods needs to be create for the docker to be deployed.
+        provided below is the project_path and structure. go through each settings,configuration see for the databases, important is the ports examine each. need specific ports used by frontend and backend and databse applications.
+        Project Structure:
         Project: {project_path}
         Structure: {project_info}
         
-        Return only the Dockerfile content.
+        Return only the Dockerfile content, do not include any line starting from special character and no comments.
         """
         
         response = self._call_bedrock(prompt)
