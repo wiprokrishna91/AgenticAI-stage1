@@ -5,7 +5,7 @@ from tindatabase import RepoDatabase
 import json
 from tindatabase import RepoDatabase
 from takeprompt import BedrockAgent
-from awsbedrock import edit_the_file
+from awsbedrock import edit_the_file, is_multi_staged
 from submodule import run_command
 import time
 from Dockerpush import push_to_ecr
@@ -47,20 +47,22 @@ def build_and_run_docker(project_name: str, image_name: str = '', container_name
         with open(dockerfile_path, 'w', encoding='utf-8') as f:
             f.write(dockerfile_content)
         edit_the_file(dockerfile_path)
-        
+        print("docker file created sucessfully!")
         # Build Docker image
         build_result = run_command(f"docker build -t {image_name} {cloned_repo_path}".split(' '))
         
         if not build_result.get("success"):
             return {"error": f"Docker build failed: {build_result.get('stderr')}"}
-        
+        print("docker build is sucess")
         # Push to ECR if build successful
+        print("pushing to ECR")
         push_result = push_to_ecr(image_name)
         if not push_result.get("success"):
             return {"error": f"ECR push failed: {push_result.get('error')}"}
+        compose_path = ''
 #----------------------------------------------------------------------------
         # Create docker-compose.yml
-        def create_docker_compose():
+        if is_multi_staged(project_name):
             compose_prompt = f"""
             Analyze the following project files and create a docker-compose.yml:
             Project: {project_name}
@@ -75,9 +77,7 @@ def build_and_run_docker(project_name: str, image_name: str = '', container_name
             with open(compose_path, 'w', encoding='utf-8') as f:
                 f.write(compose_content)
             edit_the_file(compose_path)
-            return compose_path
-        
-        compose_path = create_docker_compose()
+        print("Completed!)")
         return {
             "success": True,
             "dockerfile_path": dockerfile_path,

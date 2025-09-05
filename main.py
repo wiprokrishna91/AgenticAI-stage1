@@ -136,7 +136,9 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         return analysis_data
         
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+    
 @app.post("/containerize")
 async def containerize_project(container_request: ContainerizeRequest) -> Dict[str, Any]:
     """Create containerized image using Docker"""

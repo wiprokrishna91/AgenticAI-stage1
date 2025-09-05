@@ -2,7 +2,8 @@ import boto3
 import json
 import os
 from typing import Dict, Any
-
+from tindatabase import RepoDatabase
+from takeprompt import BedrockAgent
 
 def _analyze_project_structure(project_path: str) -> str:
     structure = []
@@ -58,7 +59,7 @@ def get_docker_build_command(project_path: str) -> str:
         with open(dockerfile_path, 'r', encoding='utf-8') as f:
             dockerfile_content = f.read()
         
-        from takeprompt import BedrockAgent
+        
         agent = BedrockAgent()
         
         prompt = f"""
@@ -75,3 +76,13 @@ def get_docker_build_command(project_path: str) -> str:
     except Exception as e:
         return f"docker build -t myapp {project_path}"
     
+def is_multi_staged(repo_name):
+    db = RepoDatabase()
+    repo_data = db.get_repo_analysis(repo_name)
+    analysis_repo = repo_data.get("ai_analysis",'')
+    agent = BedrockAgent()
+    is_multi_staged = agent.get_bedrock_response(f"""
+                              providing the string{analysis_repo}scan this string and the provided just return the value for multistaged key paramater, the return data should only be true or false depending on what is it saved in the provided string.
+                              Return only true or false no other details required
+                                """)
+    return is_multi_staged
