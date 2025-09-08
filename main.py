@@ -109,7 +109,7 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
             "ports": ["list of all ports used] 
             "database": ["databse used"]
             "build_instructions": "how to build this project",
-            "multistaged": "is it a multi-staged application? just reply True or false
+            "multistaged": "is it a multi-staged application to build the doker files? if database is used then multistaged should be true. analyze the project info and decide is it multistaged. just reply True or false
         }}
         """
     
@@ -125,7 +125,6 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
             "structure": project_info,
             "ai_analysis": restructured_response[7:-5],
             "bedrock_model": agent.model_id,
-            "error_in":"",
             "errormsg":"",
             "imagename": ""
         }
