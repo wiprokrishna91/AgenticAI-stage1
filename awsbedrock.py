@@ -11,7 +11,7 @@ def _analyze_project_structure(project_path: str) -> str:
         dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['node_modules', '__pycache__', 'venv']]
         level = root.replace(project_path, '').count(os.sep)
         indent = ' ' * 2 * level
-        structure.append(f"{indent}{os.path.basename(root)}/")
+        structure.append(f"{indent}{os.path.basename(root)}")
         subindent = ' ' * 2 * (level + 1)
         for file in files[:10]:
             structure.append(f"{subindent}{file}")

@@ -3,8 +3,9 @@ import os
 import base64
 from typing import Dict, Any
 from submodule import run_command
+from tindatabase import RepoDatabase
 
-def push_to_ecr(image_name: str) -> Dict[str, Any]:
+def push_to_ecr(image_name: str, imageId='') -> Dict[str, Any]:
     """Push Docker image to AWS ECR with all necessary steps"""
     try:
         # Get environment variables
@@ -23,6 +24,7 @@ def push_to_ecr(image_name: str) -> Dict[str, Any]:
             aws_access_key_id=aws_access_key,
             aws_secret_access_key=aws_secret_key
         )
+        print("account validation success")
         
         # Extract repository name from image name.MAKE SURE  YOPU GIVE YOUR REPONAME IN ECR
         repo_name = image_name.split(':')[0].lower()
@@ -32,7 +34,7 @@ def push_to_ecr(image_name: str) -> Dict[str, Any]:
             ecr_client.create_repository(repositoryName=repo_name)
         except ecr_client.exceptions.RepositoryAlreadyExistsException:
             pass
-        
+        print(repo_name)
         # Get ECR login token
         token_response = ecr_client.get_authorization_token()
         token = token_response['authorizationData'][0]['authorizationToken']
@@ -45,7 +47,7 @@ def push_to_ecr(image_name: str) -> Dict[str, Any]:
         
         if not login_result.get("success"):
             return {"error": f"ECR login failed: {login_result.get('stderr')}"}
-        
+        print("dcoker login success")
         # Tag image for ECR
         ecr_uri = f"{ecr_endpoint}/{repo_name}:latest"
         tag_cmd = ["docker", "tag", image_name, ecr_uri]
@@ -53,13 +55,24 @@ def push_to_ecr(image_name: str) -> Dict[str, Any]:
         
         if not tag_result.get("success"):
             return {"error": f"Image tagging failed: {tag_result.get('stderr')}"}
-        
+        print("tagging image success")
         # Push image to ECR
         push_cmd = ["docker", "push", ecr_uri]
         push_result = run_command(push_cmd)
         
         if not push_result.get("success"):
             return {"error": f"Image push failed: {push_result.get('stderr')}"}
+        print("pushing success")
+        # Update repoDB with imageID
+        if imageId:
+            try:
+                db = RepoDatabase()
+                existing_data = db.get_repo_analysis(repo_name) or {}
+                existing_data["imageID"] = imageId
+                db.store_repo_analysis(repo_name, existing_data)
+                db.close()
+            except:
+                pass
         
         return {
             "success": True,

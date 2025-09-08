@@ -9,10 +9,12 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, HttpUrl
 import uvicorn
+import json
 from takeprompt import BedrockAgent
 from awsdocker import build_and_run_docker, build_compose
 from tindatabase import RepoDatabase
 from awsbedrock import _analyze_project_structure
+from utils import format_dict_string
 
 app = FastAPI(title="Git Repo Analyzer & Containerizer", version="1.0.0")
 
@@ -80,14 +82,9 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
     try:
         repo_url = str(repo_request.repo_url)
         repo_name = repo_url.split('/')[-1].replace('.git', '')
-        print(repo_name)
         project_path = os.path.abspath(os.path.join(os.getcwd(),CLONED_REPOS_DIR, repo_name))
-        print(project_path)
         if not os.path.exists(project_path):
-            raise HTTPException(
-                status_code=404,
-                detail=f"Repository not found. Please clone it first."
-            )
+            raise Exception(f"Repository not found. Please clone it first.")
         # Initialize Bedrock agent
         agent = BedrockAgent()
         
@@ -115,18 +112,18 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
     
         ai_response = agent._call_bedrock(prompt)
         restructured_response = agent._call_bedrock(f"Given this text, restructure it into a valid JSON object: {ai_response}. need spefic details with no additional texts")
-    
+        formated_Well = format_dict_string(restructured_response)
         # Store analysis data in database
         db = RepoDatabase()
         analysis_data = {
-            "success": True,
+            "status": "success",
             "repo_name": repo_name,
             "project_path": project_path,
-            "structure": project_info,
-            "ai_analysis": restructured_response[7:-5],
+            "structure": f"{project_info}",
+            "ai_analysis": f"{json.loads(formated_Well)}",
             "bedrock_model": agent.model_id,
-            "errormsg":"",
-            "imagename": ""
+            "errormsg": 'NA',
+            "imageID": 'NA'
         }
         
         db.store_repo_analysis(repo_name, analysis_data)
@@ -135,7 +132,6 @@ async def analyze_repository(repo_request: RepoRequest) -> Dict[str, Any]:
         return analysis_data
         
     except Exception as e:
-        print(e)
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
     
 @app.post("/containerize")
@@ -143,12 +139,9 @@ async def containerize_project(container_request: ContainerizeRequest) -> Dict[s
     """Create containerized image using Docker"""
     try:
         project_name = container_request.project_name
-        project_path = os.path.join(CLONED_REPOS_DIR, project_name)     
+        project_path = os.path.abspath(os.path.join(os.getcwd(),CLONED_REPOS_DIR, project_name))
         if not os.path.exists(project_path) or len(os.listdir(project_path)) == 0:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Project '{project_path}' is either not found or empty. please check if the repo is cloned"
-            )
+            raise Exception(f"Repository not found. Please clone it first.")
         
         if not project_path or not os.path.exists(project_path):
             raise HTTPException(

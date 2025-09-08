@@ -49,14 +49,14 @@ def build_and_run_docker(project_name: str, image_name: str = '', container_name
         edit_the_file(dockerfile_path)
         print("docker file created sucessfully!")
         # Build Docker image
-        build_result = run_command(f"docker build -t {image_name} {cloned_repo_path}".split(' '))
+        build_result = run_command(f"docker build -q -t {image_name} {cloned_repo_path}".split(' '))
         
         if not build_result.get("success"):
             return {"error": f"Docker build failed: {build_result.get('stderr')}"}
-        print("docker build is sucess")
+        image_ID = build_result.get("stdout",'')
         # Push to ECR if build successful
         print("pushing to ECR")
-        push_result = push_to_ecr(image_name)
+        push_result = push_to_ecr(image_name, image_ID)
         if not push_result.get("success"):
             return {"error": f"ECR push failed: {push_result.get('error')}"}
         compose_path = ''
@@ -81,7 +81,7 @@ def build_and_run_docker(project_name: str, image_name: str = '', container_name
         return {
             "success": True,
             "dockerfile_path": dockerfile_path,
-            "compose_path": compose_path
+            "compose_path": 'compose_path'
         }
         
     except Exception as e:
