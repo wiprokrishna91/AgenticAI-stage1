@@ -3,463 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Git Repo Analyzer & Containerizer</title>
+    <title>Repository Manager - AI Analyzer</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            color: #333;
+        }
+        .parent-container {
+            display: flex;
+            flex-direction: column;
             padding: 20px;
+            gap: 20px;
+            min-height: 100vh;
+            width: 100vw;
         }
-        
         .container {
-            max-width: 800px;
-            margin: 0 auto;
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
             padding: 30px;
-            text-align: center;
+            min-width: 400px;
+            flex-shrink: 0;
         }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .form-group {
+        .scan-container {
             margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
         }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 1.1rem;
+        .form-group {
+            margin-bottom: 20px;
         }
-        
-        .form-group input {
+        input[type="url"] {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 16px;
             transition: border-color 0.3s ease;
         }
-        
-        .form-group input:focus {
+        input[type="url"]:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
         .btn {
-            flex: 1;
-            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            transition: transform 0.2s ease;
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-            color: white;
-        }
-        
-        .btn-success {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: white;
-        }
-        
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
-            display: none;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .results {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
+        .repo-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 20px;
+        }
+        .repo-btn {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .repo-btn:hover {
+            background: #e9ecef;
+        }
+        .folder-icon {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+        .repo-details {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        .repo-details pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        #container1 {
+            width: 100%;
+        }
+        
+        #container2 {
+            overflow-x: auto;
+            width: 100%;
+        }
+        
+        #container3 {
+            width: 100%;
+        }
+        
+        #container2 pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        .hidden {
             display: none;
         }
-        
-        .results h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
+        .status-container {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
-        
-        .results pre {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 0.9rem;
+        .status-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
         }
-        
-        @media (max-width: 768px) {
-            .button-group {
-                flex-direction: column;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .content {
-                padding: 20px;
-            }
+        .status-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
         }
+        .status-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Git Repo Analyzer</h1>
-            <p>Clone, Analyze & Containerize your repositories with AI</p>
-        </div>
-        
-        <div class="content">
-            <form id="repoForm">
+    <div class="parent-container">
+        <div id="container1" class="container">
+            <div id="statusContainer" class="status-container hidden">
+                <span id="statusMessage">Ready</span>
+            </div>
+            <div class="scan-container">
+                <h2>Repository Scanner</h2>
                 <div class="form-group">
-                    <label for="repoUrl">Repository URL</label>
-                    <input 
-                        type="url" 
-                        id="repoUrl" 
-                        name="repoUrl" 
-                        placeholder="https://github.com/username/repository.git"
-                        required
-                    >
+                    <input type="url" id="repoUrl" placeholder="https://github.com/user/repo.git">
                 </div>
-                
-                <div class="button-group">
-                    <button type="button" class="btn btn-primary" id="cloneBtn">
-                        📥 Clone Repository
-                    </button>
-                    <button type="button" class="btn btn-secondary" id="analyzeBtn">
-                        🔍 Analyze with AI
-                    </button>
-                    <button type="button" class="btn btn-success" id="containerizeBtn">
-                        🐳 Containerize
-                    </button>
-                    <button type="button" class="btn btn-primary" id="tryAgainSmallBtn" style="flex: 0.3; font-size: 0.8rem;">
-                        🔄 Try Again
-                    </button>
-                </div>
-            </form>
-            
-            <div id="status" class="status"></div>
-            
-            <div id="loading" class="loading">
-                <div class="spinner"></div>
-                <p>Processing your request...</p>
+                <button id="scanBtn" class="btn">Scan Repository</button>
             </div>
-            
-            <div id="results" class="results">
-                <h3>Results</h3>
-                <pre id="resultsContent"></pre>
+            <div id="repoList" class="repo-list">
+                <p>Loading repositories...</p>
             </div>
+            <div id="repoDetails" class="repo-details hidden">
+                <h3>Repository Details</h3>
+                <pre id="repoJson"></pre>
+            </div>
+        </div>
+
+        <div id="container2" class="container hidden">
+            <button id="analyzeAI" class="btn md-6-lg">Analyze AI</button>
+           
+            <div id="analysisResults" class="hidden">
+                <h3>Repository Analysis</h3>
+                <pre id="analysisJson"></pre>
+            </div>
+        </div>
+
+        <div id="container3" class="container hidden">
+            <h2>Docker Generation</h2>
+            <button id="dockerGenBtn" class="btn">Docker Generation</button>
+        </div>
+
+        <div id="container4" class="container hidden">
+            <h2>Image Generation</h2>
+            <button id="generateImageBtn" class="btn">Generate Image</button>
         </div>
     </div>
 
     <script>
-        class RepoAnalyzer {
+        class RepositoryManager {
             constructor() {
-                this.repoUrl = document.getElementById('repoUrl');
-                this.cloneBtn = document.getElementById('cloneBtn');
-                this.analyzeBtn = document.getElementById('analyzeBtn');
-                this.containerizeBtn = document.getElementById('containerizeBtn');
-                this.tryAgainSmallBtn = document.getElementById('tryAgainSmallBtn');
-                this.status = document.getElementById('status');
-                this.loading = document.getElementById('loading');
-                this.results = document.getElementById('results');
-                this.resultsContent = document.getElementById('resultsContent');
-                
-                this.currentRepoName = null;
-                this.initEventListeners();
+                this.init();
             }
-            
-            initEventListeners() {
-                this.cloneBtn.addEventListener('click', () => this.cloneRepository());
-                this.analyzeBtn.addEventListener('click', () => this.analyzeRepository());
-                this.containerizeBtn.addEventListener('click', () => this.containerizeProject());
-                this.tryAgainSmallBtn.addEventListener('click', () => this.tryAgainSmall());
+            init() {
+                this.bindEvents();
+                this.loadRepositories();
             }
-            
+            bindEvents() {
+                const scanBtn = document.getElementById('scanBtn');
+                if (scanBtn) {
+                    scanBtn.addEventListener('click', () => this.handleScanRepo());
+                }
+                const analyzeBtn = document.getElementById('analyzeAI');
+                if (analyzeBtn) {
+                    analyzeBtn.addEventListener('click', () => handleAnalyzeAI());
+                }
+                const dockerBtn = document.getElementById('dockerGenBtn');
+                if (dockerBtn) {
+                    dockerBtn.addEventListener('click', () => handleDockerGeneration());
+                }
+                const generateImageBtn = document.getElementById('generateImageBtn');
+                if (generateImageBtn) {
+                    generateImageBtn.addEventListener('click', () => handleGenerateImage());
+                }
+            }
             showStatus(message, type = 'info') {
-                this.status.textContent = message;
-                this.status.className = `status ${type}`;
-                this.status.style.display = 'block';
-                
-                if (type === 'success') {
-                    setTimeout(() => {
-                        this.status.style.display = 'none';
-                    }, 5000);
-                }
+                const container = document.getElementById('statusContainer');
+                const messageEl = document.getElementById('statusMessage');
+                messageEl.textContent = message;
+                container.className = `status-container status-${type}`;
+                container.classList.remove('hidden');
             }
-            
-            showLoading(show = true) {
-                this.loading.style.display = show ? 'block' : 'none';
-                const buttons = [this.cloneBtn, this.analyzeBtn, this.containerizeBtn, this.tryAgainSmallBtn];
-                buttons.forEach(btn => btn.disabled = show);
-            }
-            
-            showResults(data) {
-                this.resultsContent.textContent = JSON.stringify(data, null, 2);
-                this.results.style.display = 'block';
-            }
-
-            hideResults() {
-                this.resultsContent.textContent = JSON.stringify('', null, 2);
-                this.results.style.display = 'none';
-            }
-            
-            extractRepoName(url) {
-                try {
-                    return url.split('/').pop().replace('.git', '');
-                } catch {
-                    return null;
-                }
-            }
-            
-            async makeRequest(endpoint, data) {
-                try {
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    const result = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(result.detail || 'Request failed');
-                    }
-                    
-                    return result;
-                } catch (error) {
-                    throw new Error(`Network error: ${error.message}`);
-                }
-            }
-            
-            async cloneRepository() {
-                const url = this.repoUrl.value.trim();
-                if (!url) {
+            async handleScanRepo() {
+                const repoUrl = document.getElementById('repoUrl').value;
+                if (!repoUrl) {
                     this.showStatus('Please enter a repository URL', 'error');
                     return;
                 }
-                
-                this.showLoading(true);
                 this.showStatus('Cloning repository...', 'info');
-                
                 try {
-                    const result = await this.makeRequest('/clone-repo', {
-                        repo_url: url
+                    const response = await fetch('/clone-repo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ repo_url: repoUrl })
                     });
-                    
-                    this.currentRepoName = result.repo_name;
-                    this.showStatus(`✅ Repository cloned successfully: ${result.repo_name}`, 'success');
-                    this.showResults(result);
-                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        this.showStatus('Repository cloned successfully!', 'success');
+                        this.loadRepositories();
+                        document.getElementById('repoUrl').value = '';
+                    } else {
+                        this.showStatus('Failed to clone: ' + (result.error || 'Unknown error'), 'error');
+                    }
                 } catch (error) {
-                    this.showStatus(`❌ Clone failed: ${error.message}`, 'error');
-                } finally {
-                    this.showLoading(false);
-                    this.hideResults();
+                    this.showStatus('Error: ' + error.message, 'error');
                 }
             }
-            
-            async analyzeRepository() {
-                const url = this.repoUrl.value.trim();
-                if (!url) {
-                    this.showStatus('Please enter a repository URL', 'error');
-                    return;
-                }
-                this.showLoading(true);
-                this.showStatus('Analyzing repository with AI...', 'info');
-                this.hideResults();
+            async loadRepositories() {
                 try {
-                    const result = await this.makeRequest('/analyze-repo', {
-                        repo_url: url
-                    });
-                    
-                    this.showStatus(`✅ Analysis completed for: ${result.repo_name}`, 'success');
-                    this.showResults(result);
-                    
+                    const response = await fetch('/list-repos');
+                    const result = await response.json();
+                    if (result.success) {
+                        this.displayRepositories(result.repos);
+                        this.showStatus(`Loaded ${result.repos.length} repositories`, 'success');
+                    } else {
+                        this.showStatus('Error loading repositories: ' + (result.error || 'Unknown error'), 'error');
+                        document.getElementById('repoList').innerHTML = '<p>Error loading repositories</p>';
+                    }
                 } catch (error) {
-                    this.showStatus(`❌ Analysis failed: ${error.message}`, 'error');
-                    this.hideResults();
-                } finally {
-                    this.showLoading(false);
-                    
+                    this.showStatus('Failed to load repositories', 'error');
+                    document.getElementById('repoList').innerHTML = '<p>Failed to load repositories</p>';
                 }
             }
-            
-            async containerizeProject() {
-                const url = this.repoUrl.value.trim();
-                if (!url) {
-                    this.showStatus('Please enter a repository URL', 'error');
+            displayRepositories(repos) {
+                const repoList = document.getElementById('repoList');
+                if (!repoList) return;
+                if (repos.length === 0) {
+                    repoList.innerHTML = '<p>No repositories found. Scan a repository to get started.</p>';
                     return;
                 }
-                
-                const projectName = this.extractRepoName(url);
-                if (!projectName) {
-                    this.showStatus('Invalid repository URL', 'error');
-                    return;
-                }
-                
-                this.showLoading(true);
-                this.showStatus('Creating containerized image...', 'info');
-                this.hideResults();
-                
-                try {
-                    const result = await this.makeRequest('/containerize', {
-                        project_name: projectName
-                    });
-                    
-                    this.showStatus(`✅ Containerization completed: ${projectName}`, 'success');
-                    this.showResults(result);
-                    
-                } catch (error) {
-                    this.showStatus(`❌ Containerization failed: ${error.message}`, 'error');
-                    this.hideResults();
-                } finally {
-                    this.showLoading(false);
-                    
-                }
-            }
-            
-            async tryAgainSmall() {
-                const url = this.repoUrl.value.trim();
-                if (!url) {
-                    this.showStatus('Please enter a repository URL', 'error');
-                    return;
-                }
-                
-                const projectName = this.extractRepoName(url);
-                if (!projectName) {
-                    this.showStatus('Invalid repository URL', 'error');
-                    return;
-                }
-                
-                this.showLoading(true);
-                this.showStatus('Rebuilding compose...', 'info');
-                this.hideResults();
-                
-                try {
-                    const result = await this.makeRequest('/rebuild-compose', {
-                        project_name: projectName
-                    });
-                    
-                    this.showStatus(`✅ Compose rebuilt: ${projectName}`, 'success');
-                    this.showResults(result);
-                    
-                } catch (error) {
-                    this.showStatus(`❌ Rebuild failed: ${error.message}`, 'error');
-                    this.hideResults();
-                } finally {
-                    this.showLoading(false);
-                }
+                repoList.innerHTML = repos.map(repo => `
+                    <button class="repo-btn" onclick="selectRepo('${repo.repoID}', '${repo.repo_name}')">
+                        <span class="folder-icon">📁</span>
+                        ${repo.repo_name}
+                    </button>
+                `).join('');
             }
         }
-        
-        // Initialize the application
+
+        let selectedRepoUrl = '';
+        let selectedRepoData = null;
+        let repoManager;
+
+        function showStatus(message, type = 'info') {
+            const container = document.getElementById('statusContainer');
+            const messageEl = document.getElementById('statusMessage');
+            messageEl.textContent = message;
+            container.className = `status-container status-${type}`;
+            container.classList.remove('hidden');
+        }
+
+        async function selectRepo(repoId, repoName) {
+            showStatus(`Loading details for ${repoName}...`, 'info');
+            try {
+                const response = await fetch(`/repo/${repoId}`);
+                const result = await response.json();
+                const detailsDiv = document.getElementById('repoDetails');
+                const jsonPre = document.getElementById('repoJson');
+                
+                if (result.success) {
+                    selectedRepoUrl = result.repo.repo_url;
+                    selectedRepoData = result.repo;
+                    jsonPre.textContent = JSON.stringify(result.repo, null, 2);
+                    detailsDiv.classList.remove('hidden');
+                    document.getElementById('container2').classList.remove('hidden');
+                    showStatus(`Repository ${repoName} selected`, 'success');
+                } else {
+                    jsonPre.textContent = 'Error: ' + result.error;
+                    detailsDiv.classList.remove('hidden');
+                    showStatus('Error loading repository details', 'error');
+                }
+            } catch (error) {
+                showStatus('Error fetching repository details', 'error');
+            }
+        }
+
+        async function handleAnalyzeAI() {
+            if (!selectedRepoUrl || !selectedRepoData) {
+                showStatus('Please select a repository first', 'error');
+                return;
+            }
+            showStatus('Analyzing repository details...', 'info');
+            try {
+                // Call analyze-repo-details directly
+                const detailsResponse = await fetch('/analyze-repo-details', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: selectedRepoData.repo_name })
+                });
+                const detailsResult = await detailsResponse.json();
+                
+                const analysisDiv = document.getElementById('analysisResults');
+                const analysisJson = document.getElementById('analysisJson');
+                
+                if (detailsResponse.ok && detailsResult.success) {
+                    // Display only the analysis text
+                    analysisJson.textContent = detailsResult.analysis;
+                    analysisDiv.classList.remove('hidden');
+                    // Show container3 after successful analysis
+                    document.getElementById('container3').classList.remove('hidden');
+                    showStatus('Repository analysis completed successfully', 'success');
+                } else {
+                    showStatus('Analysis failed: ' + (detailsResult.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error during analysis: ' + error.message, 'error');
+            }
+        }
+
+        async function handleDockerGeneration() {
+            if (!selectedRepoData) {
+                showStatus('Please select a repository first', 'error');
+                return;
+            }
+            showStatus('Building Docker image...', 'info');
+            try {
+                const dockerResponse = await fetch('/build-docker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: selectedRepoData.repo_name })
+                });
+                const dockerResult = await dockerResponse.json();
+                
+                if (dockerResponse.ok && dockerResult.success) {
+                    showStatus('Docker image built successfully', 'success');
+                    // Show container4 after successful docker generation
+                    document.getElementById('container4').classList.remove('hidden');
+                } else {
+                    showStatus('Docker build failed: ' + (dockerResult.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error during Docker build: ' + error.message, 'error');
+            }
+        }
+
+        async function handleGenerateImage() {
+            if (!selectedRepoData) {
+                showStatus('Please select a repository first', 'error');
+                return;
+            }
+            showStatus('Rebuilding compose...', 'info');
+            try {
+                const response = await fetch('/rebuild-compose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_name: selectedRepoData.repo_name })
+                });
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showStatus('Compose rebuilt successfully', 'success');
+                } else {
+                    showStatus('Rebuild failed: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showStatus('Error during rebuild: ' + error.message, 'error');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            new RepoAnalyzer();
+            repoManager = new RepositoryManager();
         });
     </script>
 </body>
